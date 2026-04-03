@@ -2,7 +2,9 @@
 
 namespace App\Providers;
 
+use App\Socialite\DynamicProvider;
 use Illuminate\Support\ServiceProvider;
+use Laravel\Socialite\Facades\Socialite;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -19,6 +21,13 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        //
+        // Register dynamic SSO provider
+        if ($provider = env('SSO_PROVIDER')) {
+            Socialite::extend($provider, function ($app) use ($provider) {
+                $config = config("services.{$provider}");
+
+                return Socialite::buildProvider(DynamicProvider::class, $config);
+            });
+        }
     }
 }
