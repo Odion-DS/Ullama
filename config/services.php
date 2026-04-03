@@ -35,6 +35,21 @@ return [
 //        ],
 //    ],
 
-
+    // Dynamic Socialite provider configuration
+    // Set SSO_PROVIDER in .env (e.g., 'google', 'github', 'authentik')
+    // For OIDC providers (Authentik, Keycloak, etc), set SSO_BASE_URL for auto-discovery
+    // For plain OAuth2 providers (GitHub, Facebook), set individual URLs
+    env('SSO_PROVIDER') => array_filter([
+        'enabled' => env('SSO_ENABLED', false),
+        'client_id' => env('SSO_CLIENT_ID'),
+        'client_secret' => env('SSO_CLIENT_SECRET'),
+        'redirect' => env('SSO_REDIRECT'),
+        'base_url' => env('SSO_BASE_URL'), // OIDC auto-discovery (optional)
+        'authorize_url' => env('SSO_AUTHORIZE_URL'), // Manual override (optional)
+        'token_url' => env('SSO_TOKEN_URL'), // Manual override (optional)
+        'userinfo_url' => env('SSO_USERINFO_URL'), // Manual override (optional)
+        'name' => env('SSO_NAME'),
+        'icon' => env('SSO_ICON'),
+    ]),
 
 ];
