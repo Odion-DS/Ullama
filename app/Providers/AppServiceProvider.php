@@ -13,7 +13,10 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        //
+        // Register Ollama service
+        $this->app->singleton('ollama', function ($app) {
+            return new \App\Services\OllamaService();
+        });
     }
 
     /**
