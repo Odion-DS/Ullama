@@ -3,7 +3,10 @@
 namespace App\Services;
 
 use Illuminate\Http\Client\ConnectionException;
+use Illuminate\Http\Request;
+use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Http;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class OllamaService
 {
@@ -11,7 +14,7 @@ class OllamaService
 
     public function __construct()
     {
-        $this->baseUrl = env('OLLAMA_BASE_URL', 'http://localhost:11434');
+        $this->baseUrl = config('ollama.base_url');
     }
 
     /**
@@ -52,7 +55,10 @@ class OllamaService
 
                 // Make error messages user-friendly
                 if (str_contains($error, 'file does not exist')) {
-                    return ['success' => false, 'message' => "Model '{$model}' not found. Please check the model name."];
+                    return [
+                        'success' => false,
+                        'message' => "Model '{$model}' not found. Please check the model name."
+                    ];
                 }
 
                 if (str_contains($error, 'connection refused')) {
@@ -143,4 +149,48 @@ class OllamaService
             return null;
         }
     }
+
+
+    public function redirectRequest(Request $request
+    ): \Illuminate\Contracts\Routing\ResponseFactory|Response|StreamedResponse {
+        // Get the request path without the base path
+        $path = $request->path();
+
+        // Check if streaming is requested
+        $requestBody = json_decode($request->getContent(), true);
+        $isStreaming = isset($requestBody['stream']) && $requestBody['stream'] === true;
+
+        // Forward the request to Ollama without authentication headers
+        $response = Http::withHeaders(
+            collect($request->headers->all())
+                ->except(['authorization', 'Authorization'])
+                ->map(fn($values) => is_array($values) ? $values[0] : $values)
+                ->all()
+        )
+            ->withOptions($isStreaming ? ['stream' => true] : [])
+            ->send(
+                $request->method(),
+                "{$this->baseUrl}/{$path}",
+                [
+                    'body' => $request->getContent(),
+                ]
+            );
+
+        // Handle streaming response
+        if ($isStreaming) {
+            return response()->stream(function () use ($response) {
+                $body = $response->toPsrResponse()->getBody();
+                while (!$body->eof()) {
+                    echo $body->read(1024);
+                    ob_flush();
+                    flush();
+                }
+            }, $response->status(), $response->headers());
+        }
+
+        // Handle regular response
+        return response($response->body(), $response->status())
+            ->withHeaders($response->headers());
+    }
+
 }

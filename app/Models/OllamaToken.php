@@ -2,14 +2,15 @@
 
 namespace App\Models;
 
+use App\Enums\OllamaPermission;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
-use Illuminate\Database\Eloquent\Model;
+use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Support\Str;
 
 #[Fillable(['name', 'expires_at', 'capabilities'])]
 #[Hidden(['token'])]
-class OllamaToken extends Model
+class OllamaToken extends Authenticatable
 {
     protected $casts = [
         'expires_at' => 'date',
@@ -47,5 +48,11 @@ class OllamaToken extends Model
     public function scopeExpired($query)
     {
         return $query->where('expires_at', '<', now());
+    }
+
+
+    public function canApiCall(OllamaPermission $permission): bool
+    {
+        return in_array($permission->value, $this->capabilities, true);
     }
 }

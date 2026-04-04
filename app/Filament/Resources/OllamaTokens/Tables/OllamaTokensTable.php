@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\OllamaTokens\Tables;
 
+use App\Enums\OllamaPermission;
 use App\Models\OllamaToken;
 use Filament\Actions\Action;
 use Filament\Actions\BulkActionGroup;
@@ -36,19 +37,9 @@ class OllamaTokensTable
                 TextColumn::make('capabilities')
                     ->label('Capabilities')
                     ->badge()
-                    ->formatStateUsing(fn(string $state): string => match ($state) {
-                        'can_generate_response' => 'Generate Response',
-                        'can_generate_chat_message' => 'Chat Message',
-                        'can_generate_embeddings' => 'Embeddings',
-                        'can_list_models' => 'List Models',
-                        'can_show_model_detail' => 'Model Detail',
-                        'can_create_model' => 'Create Model',
-                        'can_copy_model' => 'Copy Model',
-                        'can_pull_model' => 'Pull Model',
-                        'can_push_model' => 'Push Model',
-                        'can_delete_model' => 'Delete Model',
-                        default => $state,
-                    })
+                    ->formatStateUsing(fn(string $state): string =>
+                        OllamaPermission::tryFrom($state)?->label() ?? $state
+                    )
                     ->wrap()
                     ->toggleable(),
 

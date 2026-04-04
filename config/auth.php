@@ -42,6 +42,11 @@ return [
             'driver' => 'session',
             'provider' => 'users',
         ],
+
+        'api' => [
+            'driver' => 'sanctum',
+            'provider' => 'ollama_tokens',
+        ],
     ],
 
     /*
@@ -65,6 +70,12 @@ return [
         'users' => [
             'driver' => 'eloquent',
             'model' => env('AUTH_MODEL', User::class),
+        ],
+
+
+        'ollama_tokens' => [
+            'driver' => 'eloquent',
+            'model' => env('OLLAMA_TOKEN_AUTH_MODEL', \App\Models\OllamaToken::class),
         ],
 
         // 'users' => [

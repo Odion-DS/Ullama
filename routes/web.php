@@ -10,3 +10,4 @@ use Illuminate\Support\Facades\Route;
 // SSO Authentication Routes
 Route::get('/auth/redirect', [SocialiteController::class, 'redirect'])->name('auth.redirect');
 Route::get('/auth/callback', [SocialiteController::class, 'callback'])->name('auth.callback');
+
