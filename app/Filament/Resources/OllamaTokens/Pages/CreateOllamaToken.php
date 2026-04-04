@@ -8,16 +8,12 @@ use Filament\Resources\Pages\CreateRecord;
 class CreateOllamaToken extends CreateRecord
 {
     protected static string $resource = OllamaTokenResource::class;
-    protected static bool $canCreateAnother = false;
 
-    protected function getRedirectUrl(): string
+    protected function afterCreate(): void
     {
-        if ($this->getRecord()->plainToken) {
+        if ($this->record->plainToken) {
             session()->flash('created_token', $this->record->plainToken);
-            return $this->getResource()::getUrl('created');
+            $this->redirect($this->getResource()::getUrl('created', ['record' => $this->record]));
         }
-
-        return $this->getResource()::getUrl('index');
     }
-
 }
