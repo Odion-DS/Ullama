@@ -2,6 +2,7 @@
 
 namespace App\Providers\Filament;
 
+use App\Filament\Widgets\LogoWidget;
 use DutchCodingCompany\FilamentSocialite\FilamentSocialitePlugin;
 use DutchCodingCompany\FilamentSocialite\Provider;
 use Filament\Http\Middleware\Authenticate;
@@ -29,9 +30,10 @@ class AdminPanelProvider extends PanelProvider
             ->id('admin')
             ->path('/')
             ->brandLogo('img/logo.png')
+            ->darkModeBrandLogo('img/logo-dark.png')
             ->brandName('Ullama')
-            ->darkMode(false)
-            ->brandLogoHeight('4rem')
+            ->brandLogoHeight('3rem')
+            ->globalSearch(false)
             ->login()
             ->colors([
                 'primary' => Color::Amber,
@@ -41,8 +43,8 @@ class AdminPanelProvider extends PanelProvider
             ->pages([
                 Dashboard::class,
             ])
-            ->discoverWidgets(in: app_path('Filament/Widgets'), for: 'App\Filament\Widgets')
             ->widgets([
+                LogoWidget::class,
                 AccountWidget::class,
             ])
             ->middleware([
