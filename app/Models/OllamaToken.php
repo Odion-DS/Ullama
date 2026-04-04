@@ -6,6 +6,7 @@ use App\Enums\OllamaPermission;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
 use Illuminate\Foundation\Auth\User as Authenticatable;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
 
 #[Fillable(['name', 'expires_at', 'capabilities'])]
@@ -17,11 +18,15 @@ class OllamaToken extends Authenticatable
         'capabilities' => 'array',
     ];
 
+    public $plainToken = null;
+
     protected static function booted(): void
     {
         static::creating(function (OllamaToken $token) {
             if (empty($token->token)) {
-                $token->token = 'ollama_' . Str::random(64);
+                $plainToken = 'ollama_' . Str::random(64);
+                $token->plainToken = $plainToken;
+                $token->token = Hash::make($plainToken);
             }
         });
     }

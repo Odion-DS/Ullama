@@ -4,6 +4,7 @@ namespace App\Filament\Pages;
 
 use App\Facades\Ollama;
 use App\Jobs\PullOllamaModel;
+use BackedEnum;
 use Filament\Actions\Action;
 use Filament\Forms\Components\TextInput;
 use Filament\Pages\Page;
@@ -21,6 +22,8 @@ class InstalledModelPage extends Page implements HasTable
 {
     protected static ?string $title = 'Installed Models';
     protected static ?string $slug = 'installed-models';
+
+    protected static string|BackedEnum|null $navigationIcon = Heroicon::CubeTransparent;
 
     public ?array $downloadProgress = null;
     public bool $isDownloading = false;
@@ -41,6 +44,42 @@ class InstalledModelPage extends Page implements HasTable
         }
     }
 
+    public function checkProgress(): void
+    {
+        if (!$this->progressKey) {
+            return;
+        }
+
+        $progress = Cache::get($this->progressKey);
+
+        if ($progress) {
+            $this->downloadProgress = $progress;
+
+            // Check if download is finished
+            if (isset($progress['finished']) && $progress['finished']) {
+                $this->isDownloading = false;
+
+                if ($progress['success']) {
+                    \Filament\Notifications\Notification::make()
+                        ->title('Model downloaded successfully')
+                        ->success()
+                        ->send();
+                } else {
+                    \Filament\Notifications\Notification::make()
+                        ->title('Download failed')
+                        ->body($progress['message'] ?? 'Unknown error')
+                        ->danger()
+                        ->send();
+                }
+
+                // Clean up
+                Cache::forget($this->progressKey);
+                session()->forget('model_download_progress_key');
+                $this->progressKey = null;
+                $this->downloadProgress = null;
+            }
+        }
+    }
 
     public function content(Schema $schema): Schema
     {
@@ -50,6 +89,16 @@ class InstalledModelPage extends Page implements HasTable
                     ->visible(fn() => $this->isDownloading && $this->downloadProgress !== null),
                 EmbeddedTable::make(),
             ]);
+    }
+
+    public function formatBytes(int $bytes): string
+    {
+        $units = ['B', 'KB', 'MB', 'GB'];
+        $bytes = max($bytes, 0);
+        $pow = floor(($bytes ? log($bytes) : 0) / log(1024));
+        $pow = min($pow, count($units) - 1);
+        $bytes /= pow(1024, $pow);
+        return round($bytes, 2) . ' ' . $units[$pow];
     }
 
     protected function makeTable(): Table
@@ -126,58 +175,11 @@ class InstalledModelPage extends Page implements HasTable
         return $table;
     }
 
-    public function checkProgress(): void
-    {
-        if (!$this->progressKey) {
-            return;
-        }
-
-        $progress = Cache::get($this->progressKey);
-
-        if ($progress) {
-            $this->downloadProgress = $progress;
-
-            // Check if download is finished
-            if (isset($progress['finished']) && $progress['finished']) {
-                $this->isDownloading = false;
-
-                if ($progress['success']) {
-                    \Filament\Notifications\Notification::make()
-                        ->title('Model downloaded successfully')
-                        ->success()
-                        ->send();
-                } else {
-                    \Filament\Notifications\Notification::make()
-                        ->title('Download failed')
-                        ->body($progress['message'] ?? 'Unknown error')
-                        ->danger()
-                        ->send();
-                }
-
-                // Clean up
-                Cache::forget($this->progressKey);
-                session()->forget('model_download_progress_key');
-                $this->progressKey = null;
-                $this->downloadProgress = null;
-            }
-        }
-    }
-
     private function calculatePercent(array $progress): int
     {
         if (isset($progress['completed']) && isset($progress['total']) && $progress['total'] > 0) {
-            return (int) (($progress['completed'] / $progress['total']) * 100);
+            return (int)(($progress['completed'] / $progress['total']) * 100);
         }
         return 0;
-    }
-
-    public function formatBytes(int $bytes): string
-    {
-        $units = ['B', 'KB', 'MB', 'GB'];
-        $bytes = max($bytes, 0);
-        $pow = floor(($bytes ? log($bytes) : 0) / log(1024));
-        $pow = min($pow, count($units) - 1);
-        $bytes /= pow(1024, $pow);
-        return round($bytes, 2) . ' ' . $units[$pow];
     }
 }

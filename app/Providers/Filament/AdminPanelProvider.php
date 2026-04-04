@@ -13,8 +13,6 @@ use Filament\Panel;
 use Filament\PanelProvider;
 use Filament\Support\Colors\Color;
 use Filament\Widgets\AccountWidget;
-use Filament\Widgets\FilamentInfoWidget;
-use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse;
 use Illuminate\Cookie\Middleware\EncryptCookies;
 use Illuminate\Foundation\Http\Middleware\PreventRequestForgery;
@@ -30,6 +28,10 @@ class AdminPanelProvider extends PanelProvider
             ->default()
             ->id('admin')
             ->path('/')
+            ->brandLogo('img/logo.png')
+            ->brandName('Ullama')
+            ->darkMode(false)
+            ->brandLogoHeight('4rem')
             ->login()
             ->colors([
                 'primary' => Color::Amber,
@@ -42,7 +44,6 @@ class AdminPanelProvider extends PanelProvider
             ->discoverWidgets(in: app_path('Filament/Widgets'), for: 'App\Filament\Widgets')
             ->widgets([
                 AccountWidget::class,
-                FilamentInfoWidget::class,
             ])
             ->middleware([
                 EncryptCookies::class,
@@ -58,20 +59,18 @@ class AdminPanelProvider extends PanelProvider
             ->authMiddleware([
                 Authenticate::class,
             ])
-
-
             ->plugin(
                 FilamentSocialitePlugin::make()
                     ->registration(env('SSO_ALLOW_REGISTRATION', false))
                     ->providers(
                         env('SSO_ENABLED', false) && env('SSO_PROVIDER')
                             ? [
-                                Provider::make(env('SSO_PROVIDER'))
-                                    ->label(env('SSO_NAME', 'SSO Login'))
-                                    ->icon('heroicon-o-user-circle')
-                                    ->color(env('SSO_COLOR') ? Color::hex(env('SSO_COLOR')) : Color::Blue)
-                                    ->scopes(['openid', 'profile', 'email'])
-                            ]
+                            Provider::make(env('SSO_PROVIDER'))
+                                ->label(env('SSO_NAME', 'SSO Login'))
+                                ->icon('heroicon-o-user-circle')
+                                ->color(env('SSO_COLOR') ? Color::hex(env('SSO_COLOR')) : Color::Blue)
+                                ->scopes(['openid', 'profile', 'email'])
+                        ]
                             : []
                     )
             );

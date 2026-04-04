@@ -18,9 +18,17 @@ class OllamaAuth
     {
         // Extrahiere Bearer Token aus dem Authorization Header
         $token = $request->bearerToken();
-        $ollamaToken = OllamaToken::query()->where('token', $token)->first();
 
-        if (empty($token) || is_null($ollamaToken)) {
+        if (empty($token)) {
+            return response()->json(['message' => 'Unauthorized'], 401);
+        }
+
+        // Get all valid tokens and check hash
+        $ollamaToken = OllamaToken::query()->valid()->get()->first(function ($dbToken) use ($token) {
+            return \Illuminate\Support\Facades\Hash::check($token, $dbToken->token);
+        });
+
+        if (is_null($ollamaToken)) {
             return response()->json(['message' => 'Unauthorized'], 401);
         }
 

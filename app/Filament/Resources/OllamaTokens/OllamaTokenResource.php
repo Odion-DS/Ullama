@@ -5,6 +5,7 @@ namespace App\Filament\Resources\OllamaTokens;
 use App\Filament\Resources\OllamaTokens\Pages\CreateOllamaToken;
 use App\Filament\Resources\OllamaTokens\Pages\EditOllamaToken;
 use App\Filament\Resources\OllamaTokens\Pages\ListOllamaTokens;
+use App\Filament\Resources\OllamaTokens\Pages\TokenCreated;
 use App\Filament\Resources\OllamaTokens\Schemas\OllamaTokenForm;
 use App\Filament\Resources\OllamaTokens\Tables\OllamaTokensTable;
 use App\Models\OllamaToken;
@@ -44,6 +45,7 @@ class OllamaTokenResource extends Resource
         return [
             'index' => ListOllamaTokens::route('/'),
             'create' => CreateOllamaToken::route('/create'),
+            'created' => TokenCreated::route('/created'),
         ];
     }
 }
