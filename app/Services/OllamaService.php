@@ -35,40 +35,75 @@ class OllamaService
     }
 
     /**
-     * Pull/download a model from Ollama library
+     * Pull/download a model from Ollama library with progress callback
+     * @param callable|null $progressCallback Function to call with progress updates
      * @return array ['success' => bool, 'message' => string]
      */
-    public function pullModel(string $model): array
+    public function pullModel(string $model, ?callable $progressCallback = null): array
     {
         try {
-            $response = Http::timeout(3600)->post("{$this->baseUrl}/api/pull", [
+            $response = Http::timeout(3600)->withOptions(['stream' => true])->post("{$this->baseUrl}/api/pull", [
                 'name' => $model,
-                'stream' => false,
+                'stream' => true,
             ]);
 
-            if ($response->successful()) {
-                return ['success' => true, 'message' => 'Model downloaded successfully'];
+            if (!$response->successful()) {
+                $error = $response->json('error') ?? $response->body();
+
+                // Make error messages user-friendly
+                if (str_contains($error, 'file does not exist')) {
+                    return ['success' => false, 'message' => "Model '{$model}' not found. Please check the model name."];
+                }
+
+                if (str_contains($error, 'connection refused')) {
+                    return ['success' => false, 'message' => 'Cannot connect to Ollama. Make sure Ollama is running.'];
+                }
+
+                return ['success' => false, 'message' => $error];
             }
 
-            // Parse error from response
-            $error = $response->json('error') ?? $response->body();
+            // Process streaming response
+            $body = $response->toPsrResponse()->getBody();
+            while (!$body->eof()) {
+                $line = $this->readLine($body);
+                if (empty($line)) {
+                    continue;
+                }
 
-            // Make error messages user-friendly
-            if (str_contains($error, 'file does not exist')) {
-                return ['success' => false, 'message' => "Model '{$model}' not found. Please check the model name."];
+                $data = json_decode($line, true);
+                if ($data && $progressCallback) {
+                    $progressCallback($data);
+                }
+
+                // Check for completion or error
+                if (isset($data['error'])) {
+                    return ['success' => false, 'message' => $data['error']];
+                }
             }
 
-            if (str_contains($error, 'connection refused')) {
-                return ['success' => false, 'message' => 'Cannot connect to Ollama. Make sure Ollama is running.'];
-            }
-
-            return ['success' => false, 'message' => $error];
+            return ['success' => true, 'message' => 'Model downloaded successfully'];
         } catch (ConnectionException $e) {
             return ['success' => false, 'message' => 'Cannot connect to Ollama. Make sure Ollama is running.'];
         } catch (\Exception $e) {
             \Log::error('Failed to pull model: ' . $e->getMessage());
             return ['success' => false, 'message' => 'An unexpected error occurred: ' . $e->getMessage()];
         }
+    }
+
+    /**
+     * Read a line from stream
+     */
+    private function readLine($stream): string
+    {
+        $line = '';
+        while (!$stream->eof()) {
+            $char = $stream->read(1);
+            if ($char === "\n") {
+                break;
+            }
+            $line .= $char;
+        }
+        return trim($line);
     }
 
     /**
