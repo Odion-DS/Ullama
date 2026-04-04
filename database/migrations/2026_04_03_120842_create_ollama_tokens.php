@@ -16,6 +16,7 @@ return new class extends Migration
             $table->string('token')->unique();
             $table->string('name');
             $table->date('expires_at');
+            $table->json('capabilities')->nullable();
             $table->timestamps();
         });
     }

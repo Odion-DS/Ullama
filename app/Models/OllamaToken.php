@@ -7,12 +7,13 @@ use Illuminate\Database\Eloquent\Attributes\Hidden;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Str;
 
-#[Fillable(['name', 'expires_at'])]
+#[Fillable(['name', 'expires_at', 'capabilities'])]
 #[Hidden(['token'])]
 class OllamaToken extends Model
 {
     protected $casts = [
         'expires_at' => 'date',
+        'capabilities' => 'array',
     ];
 
     protected static function booted(): void

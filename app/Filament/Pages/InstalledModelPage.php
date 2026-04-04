@@ -32,8 +32,11 @@ class InstalledModelPage extends Page implements HasTable
 
     public function mount(): void
     {
-        // Check if there's an ongoing download
-        if ($this->progressKey) {
+        // Check if there's an ongoing download from session
+        $sessionKey = session('model_download_progress_key');
+        if ($sessionKey && Cache::has($sessionKey)) {
+            $this->progressKey = $sessionKey;
+            $this->isDownloading = true;
             $this->checkProgress();
         }
     }
@@ -87,6 +90,9 @@ class InstalledModelPage extends Page implements HasTable
                         // Generate unique progress key
                         $this->progressKey = 'model-download-' . Str::random(16);
                         $this->isDownloading = true;
+
+                        // Store progress key in session for persistence
+                        session(['model_download_progress_key' => $this->progressKey]);
 
                         // Initialize progress in cache
                         Cache::put($this->progressKey, [
@@ -150,6 +156,7 @@ class InstalledModelPage extends Page implements HasTable
 
                 // Clean up
                 Cache::forget($this->progressKey);
+                session()->forget('model_download_progress_key');
                 $this->progressKey = null;
                 $this->downloadProgress = null;
             }
