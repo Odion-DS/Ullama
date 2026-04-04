@@ -1,8 +1,11 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+<p align="center"><a href="https://laravel.com" target="_blank"><img style="background: white; padding: 30px; border-radius: 30px" src="public/img/logo.png" height="200" alt="Laravel Logo"></a></p>
+
+# Ullama
 
 ## SSO Configuration
 
-This application supports flexible Single Sign-On (SSO) authentication through environment variables only. No config file modifications are needed during installation.
+This application supports flexible Single Sign-On (SSO) authentication through environment variables only. No config
+file modifications are needed during installation.
 
 ### Environment Variables
 
@@ -40,20 +43,20 @@ SSO_USERINFO_URL=https://api.github.com/user
 
 ### Configuration Options
 
-| Variable | Required | Default | Description |
-|----------|----------|---------|-------------|
-| `SSO_ENABLED` | Yes | `false` | Enable/disable SSO functionality |
-| `SSO_PROVIDER` | Yes | - | Provider identifier (e.g., `authentik`, `keycloak`, `github`) |
-| `SSO_CLIENT_ID` | Yes | - | OAuth client ID |
-| `SSO_CLIENT_SECRET` | Yes | - | OAuth client secret |
-| `SSO_NAME` | No | `SSO Login` | Display name for the SSO button |
-| `SSO_COLOR` | No | Blue | Hex color for the SSO button (e.g., `#2f2a6b`) |
-| `SSO_ALLOW_REGISTRATION` | No | `false` | Allow new users to register via SSO |
-| `SSO_VERIFY_SSL` | No | `true` | Verify SSL certificates (set to `false` for dev with custom CA) |
-| `SSO_BASE_URL` | No* | - | Base URL for OIDC auto-discovery |
-| `SSO_AUTHORIZE_URL` | No* | - | Authorization endpoint (manual override) |
-| `SSO_TOKEN_URL` | No* | - | Token endpoint (manual override) |
-| `SSO_USERINFO_URL` | No* | - | User info endpoint (manual override) |
+| Variable                 | Required | Default     | Description                                                     |
+|--------------------------|----------|-------------|-----------------------------------------------------------------|
+| `SSO_ENABLED`            | Yes      | `false`     | Enable/disable SSO functionality                                |
+| `SSO_PROVIDER`           | Yes      | -           | Provider identifier (e.g., `authentik`, `keycloak`, `github`)   |
+| `SSO_CLIENT_ID`          | Yes      | -           | OAuth client ID                                                 |
+| `SSO_CLIENT_SECRET`      | Yes      | -           | OAuth client secret                                             |
+| `SSO_NAME`               | No       | `SSO Login` | Display name for the SSO button                                 |
+| `SSO_COLOR`              | No       | Blue        | Hex color for the SSO button (e.g., `#2f2a6b`)                  |
+| `SSO_ALLOW_REGISTRATION` | No       | `false`     | Allow new users to register via SSO                             |
+| `SSO_VERIFY_SSL`         | No       | `true`      | Verify SSL certificates (set to `false` for dev with custom CA) |
+| `SSO_BASE_URL`           | No*      | -           | Base URL for OIDC auto-discovery                                |
+| `SSO_AUTHORIZE_URL`      | No*      | -           | Authorization endpoint (manual override)                        |
+| `SSO_TOKEN_URL`          | No*      | -           | Token endpoint (manual override)                                |
+| `SSO_USERINFO_URL`       | No*      | -           | User info endpoint (manual override)                            |
 
 \* Either `SSO_BASE_URL` (for OIDC) or all three manual URLs (for OAuth2) must be provided.
 
@@ -80,6 +83,26 @@ SSO_ALLOW_REGISTRATION=false
 - **Registration**: Set `SSO_ALLOW_REGISTRATION=false` to prevent unauthorized user creation
 - **Development**: Only disable SSL verification (`SSO_VERIFY_SSL=false`) in development with self-signed certificates
 
+### Manual User Creation
+
+If you need to create users manually (e.g., when SSO registration is disabled), you can use the Filament command:
+
+```bash
+php artisan make:filament-user
+```
+
+This command works in both development and production environments and allows you to create admin users directly.
+
+## Side Notes
+
+Why did I make this?
+This was just a small weekend project. I made it because I wanted to restrict access to Ollama for some educational projects and other private projects. And when you think why has this small application SSO, this is because I like my Authentik and I hate when an app hasn't SSO
+
+## AI Disclaimer
+
+Not everything in this project is written by me. Some features, like the model download mechanic, were created with AI
+assistance.
+
 ## License
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+Code released under the [MIT license](https://opensource.org/licenses/MIT).
