@@ -13,12 +13,11 @@ use Illuminate\Support\Str;
 #[Hidden(['token'])]
 class OllamaToken extends Authenticatable
 {
+    public $plainToken = null;
     protected $casts = [
         'expires_at' => 'date',
         'capabilities' => 'array',
     ];
-
-    public $plainToken = null;
 
     protected static function booted(): void
     {
@@ -56,8 +55,12 @@ class OllamaToken extends Authenticatable
     }
 
 
-    public function canApiCall(OllamaPermission $permission): bool
+    public function canApiCall(OllamaPermission|string $permission): bool
     {
-        return in_array($permission->value, $this->capabilities, true);
+        if (!is_string($permission)) {
+            $permission = $permission->value;
+        }
+
+        return in_array($permission, $this->capabilities, true);
     }
 }

@@ -5,6 +5,7 @@ namespace App\Http\Middleware;
 use App\Models\OllamaToken;
 use Closure;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Hash;
 use Symfony\Component\HttpFoundation\Response;
 
 class OllamaAuth
@@ -25,7 +26,7 @@ class OllamaAuth
 
         // Get all valid tokens and check hash
         $ollamaToken = OllamaToken::query()->valid()->get()->first(function ($dbToken) use ($token) {
-            return \Illuminate\Support\Facades\Hash::check($token, $dbToken->token);
+            return Hash::check($token, $dbToken->token);
         });
 
         if (is_null($ollamaToken)) {
@@ -37,7 +38,7 @@ class OllamaAuth
         }
 
         auth()->login($ollamaToken);
-
+        
         return $next($request);
     }
 }

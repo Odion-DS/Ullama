@@ -8,6 +8,7 @@ use Filament\Resources\Pages\CreateRecord;
 class CreateOllamaToken extends CreateRecord
 {
     protected static string $resource = OllamaTokenResource::class;
+    protected static bool $canCreateAnother = false;
 
     protected function getRedirectUrl(): string
     {
@@ -18,6 +19,5 @@ class CreateOllamaToken extends CreateRecord
 
         return $this->getResource()::getUrl('index');
     }
-
 
 }

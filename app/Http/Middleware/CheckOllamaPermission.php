@@ -2,7 +2,6 @@
 
 namespace App\Http\Middleware;
 
-use App\Enums\OllamaPermission;
 use Closure;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -17,9 +16,7 @@ class CheckOllamaPermission
         /** @var \App\Models\OllamaToken $ollamaToken */
         $ollamaToken = $request->user();
 
-        $permissionEnum = OllamaPermission::tryFrom($permission);
-
-        if (!$permissionEnum || !$ollamaToken->canApiCall($permissionEnum)) {
+        if (!$ollamaToken->canApiCall($permission)) {
             return response()->json(['message' => 'Unauthorized'], 401);
         }
 

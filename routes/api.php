@@ -10,22 +10,23 @@ use Illuminate\Support\Facades\Route;
 
 
 Route::post('generate', fn(Request $request) => Ollama::redirectRequest($request))
-    ->middleware(['ollama.auth', CheckOllamaPermission::class . ':' . OllamaPermission::CAN_GENERATE_RESPONSE->name])
+    ->middleware(['ollama.auth', CheckOllamaPermission::class . ':' . OllamaPermission::CAN_GENERATE_RESPONSE->value])
     ->name('ollama.generate');
 
 
 Route::post('chat', fn(Request $request) => Ollama::redirectRequest($request))
-    ->middleware(['ollama.auth', CheckOllamaPermission::class . ':' . OllamaPermission::CAN_GENERATE_CHAT_MESSAGE->name]
+    ->middleware(
+        ['ollama.auth', CheckOllamaPermission::class . ':' . OllamaPermission::CAN_GENERATE_CHAT_MESSAGE->value]
     )
     ->name('ollama.chat');
 
 Route::post('embeddings', fn(Request $request) => Ollama::redirectRequest($request))
-    ->middleware(['ollama.auth', CheckOllamaPermission::class . ':' . OllamaPermission::CAN_GENERATE_EMBEDDINGS->name])
+    ->middleware(['ollama.auth', CheckOllamaPermission::class . ':' . OllamaPermission::CAN_GENERATE_EMBEDDINGS->value])
     ->name('ollama.embeddings');
 
 
 Route::get('tags', fn(Request $request) => Ollama::redirectRequest($request))
-    ->middleware(['ollama.auth', CheckOllamaPermission::class . ':' . OllamaPermission::CAN_LIST_MODELS->name])
+    ->middleware(['ollama.auth', CheckOllamaPermission::class . ':' . OllamaPermission::CAN_LIST_MODELS->value])
     ->name('ollama.tags');
 
 Route::get('version', fn(Request $request) => Ollama::redirectRequest($request))
@@ -33,19 +34,19 @@ Route::get('version', fn(Request $request) => Ollama::redirectRequest($request))
     ->name('ollama.version');
 
 Route::post('show', fn(Request $request) => Ollama::redirectRequest($request))
-    ->middleware(['ollama.auth', CheckOllamaPermission::class . ':' . OllamaPermission::CAN_SHOW_MODEL_DETAIL->name])
+    ->middleware(['ollama.auth', CheckOllamaPermission::class . ':' . OllamaPermission::CAN_SHOW_MODEL_DETAIL->value])
     ->name('ollama.show');
 
 Route::post('copy', fn(Request $request) => Ollama::redirectRequest($request))
-    ->middleware(['ollama.auth', CheckOllamaPermission::class . ':' . OllamaPermission::CAN_COPY_MODEL->name])
+    ->middleware(['ollama.auth', CheckOllamaPermission::class . ':' . OllamaPermission::CAN_COPY_MODEL->value])
     ->name('ollama.copy');
 
 Route::post('pull', fn(Request $request) => Ollama::redirectRequest($request))
-    ->middleware(['ollama.auth', CheckOllamaPermission::class . ':' . OllamaPermission::CAN_PULL_MODEL->name])
+    ->middleware(['ollama.auth', CheckOllamaPermission::class . ':' . OllamaPermission::CAN_PULL_MODEL->value])
     ->name('ollama.pull');
 
 Route::post('push', fn(Request $request) => Ollama::redirectRequest($request))
-    ->middleware(['ollama.auth', CheckOllamaPermission::class . ':' . OllamaPermission::CAN_PUSH_MODEL->name])
+    ->middleware(['ollama.auth', CheckOllamaPermission::class . ':' . OllamaPermission::CAN_PUSH_MODEL->value])
     ->name('ollama.push');
 
 
