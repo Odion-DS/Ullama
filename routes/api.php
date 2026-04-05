@@ -20,7 +20,7 @@ Route::post('chat', fn(Request $request) => Ollama::redirectRequest($request))
     )
     ->name('ollama.chat');
 
-Route::post('embeddings', fn(Request $request) => Ollama::redirectRequest($request))
+Route::post('embed', fn(Request $request) => Ollama::redirectRequest($request))
     ->middleware(['ollama.auth', CheckOllamaPermission::class . ':' . OllamaPermission::CAN_GENERATE_EMBEDDINGS->value])
     ->name('ollama.embeddings');
 
