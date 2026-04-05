@@ -3,13 +3,9 @@
 namespace App\Filament\Resources\OllamaTokens\Tables;
 
 use App\Enums\OllamaPermission;
-use App\Models\OllamaToken;
-use Filament\Actions\Action;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\DeleteBulkAction;
-use Filament\Forms\Components\TextInput;
-use Filament\Support\Enums\FontWeight;
 use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
@@ -37,8 +33,8 @@ class OllamaTokensTable
                 TextColumn::make('capabilities')
                     ->label('Capabilities')
                     ->badge()
-                    ->formatStateUsing(fn(string $state): string =>
-                        OllamaPermission::tryFrom($state)?->label() ?? $state
+                    ->formatStateUsing(
+                        fn(string $state): string => OllamaPermission::tryFrom($state)?->label() ?? $state
                     )
                     ->wrap()
                     ->toggleable(),
@@ -56,18 +52,6 @@ class OllamaTokensTable
                 //
             ])
             ->recordActions([
-                Action::make('show_token')
-                    ->fillForm(fn(OllamaToken $record): array => ['token' => $record->token])
-                    ->modalSubmitAction(fn(Action $action) => $action->hidden())
-                    ->label('Token')
-                    ->icon('heroicon-o-eye')
-                    ->iconButton()
-                    ->schema([
-                        TextInput::make('token')
-                            ->hiddenLabel()
-                            ->disabled()
-                            ->copyable(),
-                    ]),
                 DeleteAction::make(),
             ])
             ->toolbarActions([

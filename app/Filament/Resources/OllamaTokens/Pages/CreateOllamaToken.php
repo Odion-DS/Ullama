@@ -11,11 +11,15 @@ class CreateOllamaToken extends CreateRecord
 
     protected static bool $canCreateAnother = false;
 
-    protected function afterCreate(): void
+    protected function getRedirectUrl(): string
     {
         if ($this->record->plainToken) {
             session()->flash('created_token', $this->record->plainToken);
-            $this->redirect($this->getResource()::getUrl('created', ['record' => $this->record]));
+            return $this->getResource()::getUrl('created', ['record' => $this->record]);
         }
+
+        return parent::getRedirectUrl();
     }
+
+
 }
