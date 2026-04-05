@@ -93,14 +93,193 @@ php artisan make:filament-user
 
 This command works in both development and production environments and allows you to create admin users directly.
 
+## Deployment with Portainer
+
+### Prerequisites
+
+- Portainer installed and configured
+- Optional: NVIDIA GPU Runtime for Ollama (if GPU acceleration is desired)
+
+### Deployment Steps
+
+1. **Create Stack**: Navigate to "Stacks" → "Add stack" in Portainer
+
+2. **Stack Configuration**:
+    - Name: `ullama`
+    - Build method: Web editor
+    - Paste the following Docker Compose content:
+
+```yaml
+version: '3.8'
+
+services:
+    ullama:
+        image: ghcr.io/odion-ds/ullama:main
+        container_name: ullama_app
+        restart: unless-stopped
+        ports:
+            - "8080:80"
+        env_file:
+            - stack.env
+        environment:
+            - APP_ENV=production
+            - APP_DEBUG=false
+            - APP_KEY=${APP_KEY}
+            - DB_HOST=${DB_HOST:-mysql}
+            - DB_PORT=${DB_PORT:-3306}
+            - DB_CONNECTION=${DB_CONNECTION:-mysql}
+            - DB_DATABASE=${DB_DATABASE:-ullama}
+            - DB_USERNAME=${DB_USER:-ullama_user}
+            - DB_PASSWORD=${DB_PASSWORD}
+            - OLLAMA_HOST=${OLLAMA_HOST:-http://ollama:11434}
+            - QUEUE_CONNECTION=database
+            - SSO_ENABLED=${SSO_ENABLED:-false}
+            - SSO_PROVIDER=${SSO_PROVIDER:-none}
+            - SSO_CLIENT_ID=${SSO_CLIENT_ID}
+            - SSO_CLIENT_SECRET=${SSO_CLIENT_SECRET}
+            - SSO_NAME=${SSO_NAME}
+            - SSO_COLOR=${SSO_COLOR}
+            - SSO_VERIFY_SSL=${SSO_VERIFY_SSL:-true}
+            - SSO_ALLOW_REGISTRATION=${SSO_ALLOW_REGISTRATION:-false}
+            - SSO_BASE_URL=${SSO_BASE_URL}
+            - SSO_AUTHORIZE_URL=${SSO_AUTHORIZE_URL}
+            - SSO_TOKEN_URL=${SSO_TOKEN_URL}
+            - SSO_USERINFO_URL=${SSO_USERINFO_URL}
+        volumes:
+            - ullama_storage:/var/www/html/storage
+            - ullama_logs:/var/www/html/storage/logs
+        depends_on:
+            - mysql
+            - ollama
+        networks:
+            - ullama_network
+
+    queue:
+        image: ghcr.io/odion-ds/ullama:main
+        container_name: ullama_queue
+        restart: unless-stopped
+        command: php artisan queue:work --verbose --tries=3 --timeout=120
+        env_file:
+            - stack.env
+        environment:
+            - APP_ENV=production
+            - APP_DEBUG=false
+            - APP_KEY=${APP_KEY}
+            - DB_CONNECTION=${DB_CONNECTION:-mysql}
+            - DB_HOST=${DB_HOST:-mysql}
+            - DB_PORT=${DB_PORT:-3306}
+            - DB_DATABASE=${DB_DATABASE:-ullama}
+            - DB_USERNAME=${DB_USER:-ullama_user}
+            - DB_PASSWORD=${DB_PASSWORD}
+            - OLLAMA_HOST=${OLLAMA_HOST:-http://ollama:11434}
+            - QUEUE_CONNECTION=database
+        volumes:
+            - ullama_storage:/var/www/html/storage
+            - ullama_logs:/var/www/html/storage/logs
+        depends_on:
+            - mysql
+            - ollama
+        networks:
+            - ullama_network
+
+    ollama:
+        image: ollama/ollama:latest
+        container_name: ullama_ollama
+        restart: unless-stopped
+        env_file:
+            - stack.env
+        ports:
+            - "11434:11434"
+        volumes:
+            - ollama_data:/root/.ollama
+        gpus:
+            -   driver: nvidia
+                count: all
+        environment:
+            - NVIDIA_VISIBLE_DEVICES=all
+            - NVIDIA_DRIVER_CAPABILITIES=compute,utility
+        networks:
+            - ullama_network
+
+    mysql:
+        image: mysql:8.0
+        container_name: ullama_mysql
+        restart: unless-stopped
+        env_file:
+            - stack.env
+        environment:
+            MYSQL_DATABASE: ${DB_DATABASE:-ullama}
+            MYSQL_USER: ${DB_USER:-ullama_user}
+            MYSQL_PASSWORD: ${DB_PASSWORD}
+            MYSQL_ROOT_PASSWORD: ${DB_PASSWORD}
+        volumes:
+            - mysql_data:/var/lib/mysql
+        networks:
+            - ullama_network
+
+volumes:
+    ullama_storage:
+    ullama_logs:
+    ollama_data:
+    mysql_data:
+
+networks:
+    ullama_network:
+        driver: bridge
+```
+
+3. **Configure Environment Variables**:
+
+   Scroll to "Environment variables" and add the following variables:
+
+   **Required Variables (must be set):**
+
+    - `APP_KEY`: Laravel Application Key
+        - Generation: Run the following command:
+          `docker run --rm ghcr.io/odion-ds/ullama:main php artisan key:generate --show`
+        - Format: `base64:XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX`
+
+    - `DB_PASSWORD`: Database Password
+        - Choose a secure password (minimum 16 characters recommended)
+        - Example: `MySecureDbPassword2024!`
+
+   **Optional Variables:**
+
+    - `DB_DATABASE=ullama` (default)
+    - `DB_USER=ullama_user` (default)
+    - `DB_HOST=mysql` (default)
+    - `DB_PORT=3306` (default)
+    - `OLLAMA_HOST=http://ollama:11434` (default)
+
+   **SSO Configuration (optional):**
+
+   If you want to enable SSO, see the "SSO Configuration" section above.
+
+4. **Deploy Stack**: Click "Deploy the stack"
+
+5. **Access**:
+    - The application will be available at `http://your-server-ip:8080` after startup
+    - Create an admin user with: `docker exec -it ullama_app php artisan make:filament-user`
+
+### Important Notes
+
+- **GPU Support**: If no NVIDIA GPU is available, remove the `gpus` block from the `ollama` service
+- **Port Adjustment**: Change `8080:80` to another port if 8080 is already in use
+- **Security**: Use strong passwords for `DB_PASSWORD` in production environments
+- **Persistence**: Volumes (`ullama_storage`, `mysql_data`, `ollama_data`) are automatically created and persist across
+  stack updates
+
 ## Side Notes
 
 Why did I make this?
-This was just a small weekend project. I made it because I wanted to restrict access to Ollama for some educational projects and other private projects. And when you think why has this small application SSO, this is because I like my Authentik and I hate when an app hasn't SSO
+This was just a small weekend project. I made it because I wanted to restrict access to Ollama for some educational
+projects and other private projects. And when you think why has this small application SSO, this is because I like my
+Authentik and I hate when an app hasn't SSO
 
 ## AI Disclaimer
 
-Not everything in this project is written by me. Some features, like the model download mechanic, were created with AI
+Not everything in this project is written by me. Some features, like the model download mechanic or parts of the README,
+were created with AI
 assistance.
 
 ## License
