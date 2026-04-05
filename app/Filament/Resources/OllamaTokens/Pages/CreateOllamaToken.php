@@ -9,6 +9,8 @@ class CreateOllamaToken extends CreateRecord
 {
     protected static string $resource = OllamaTokenResource::class;
 
+    protected static bool $canCreateAnother = false;
+
     protected function afterCreate(): void
     {
         if ($this->record->plainToken) {
