@@ -269,6 +269,42 @@ networks:
 - **Persistence**: Volumes (`ullama_storage`, `mysql_data`, `ollama_data`) are automatically created and persist across
   stack updates
 
+## Integrating Ollama with Bearer Token Authentication in Prism-PHP
+
+If your Ollama instance requires Bearer token authentication, follow these steps to configure Prism-PHP:
+
+### 1. Publish Prism Configuration
+
+Create the Prism configuration file:
+
+```bash
+php artisan vendor:publish --tag=prism-config
+```
+
+### 2. Add Bearer Token to Configuration
+
+Open `config/prism.php` and add the `api_key` parameter to the Ollama provider:
+
+```php
+'ollama' => [
+    'url' => env('OLLAMA_URL', 'http://localhost:11434'),
+    'api_key' => env('OLLAMA_API_KEY'),
+],
+```
+
+### 3. Set Environment Variables
+
+Add the following to your `.env` file:
+
+```env
+OLLAMA_URL=https://your-ollama-instance.com
+OLLAMA_API_KEY=your_token_here
+```
+
+### 4. Done!
+
+Prism will now automatically send the Bearer token as `Authorization: Bearer <token>` header with all Ollama requests.
+
 ## Side Notes
 
 Why did I make this?
