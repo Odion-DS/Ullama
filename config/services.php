@@ -50,7 +50,7 @@ return [
         'userinfo_url' => env('SSO_USERINFO_URL'), // Manual override (optional)
         'name' => env('SSO_NAME'),
 
-        'guzzle' => ['verify' => env('SSO_VERIFY_SSL', true)],
+        'guzzle' => ['verify' => filter_var(env('SSO_VERIFY_SSL', true), FILTER_VALIDATE_BOOLEAN)],
     ],
 
 ];
