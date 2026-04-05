@@ -161,7 +161,7 @@ class OllamaService
         $isStreaming = isset($requestBody['stream']) && $requestBody['stream'] === true;
 
         // Forward the request to Ollama without authentication headers
-        $response = Http::withHeaders(
+        $response = Http::timeout(300)->withHeaders(
             collect($request->headers->all())
                 ->except(['authorization', 'Authorization'])
                 ->map(fn($values) => is_array($values) ? $values[0] : $values)
