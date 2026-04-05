@@ -131,7 +131,7 @@ services:
             - DB_DATABASE=${DB_DATABASE:-ullama}
             - DB_USERNAME=${DB_USER:-ullama_user}
             - DB_PASSWORD=${DB_PASSWORD}
-            - OLLAMA_HOST=${OLLAMA_HOST:-http://ollama:11434}
+            - OLLAMA_BASE_URL=${OLLAMA_HOST:-http://ollama:11434}
             - QUEUE_CONNECTION=database
             - SSO_ENABLED=${SSO_ENABLED:-false}
             - SSO_PROVIDER=${SSO_PROVIDER:-none}
@@ -171,7 +171,7 @@ services:
             - DB_DATABASE=${DB_DATABASE:-ullama}
             - DB_USERNAME=${DB_USER:-ullama_user}
             - DB_PASSWORD=${DB_PASSWORD}
-            - OLLAMA_HOST=${OLLAMA_HOST:-http://ollama:11434}
+            - OLLAMA_BASE_URL=${OLLAMA_HOST:-http://ollama:11434}
             - QUEUE_CONNECTION=database
         volumes:
             - ullama_storage:/var/www/html/storage
