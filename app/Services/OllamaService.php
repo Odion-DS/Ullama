@@ -153,6 +153,9 @@ class OllamaService
 
     public function redirectRequest(Request $request
     ): \Illuminate\Contracts\Routing\ResponseFactory|Response|StreamedResponse {
+        // Increase PHP execution time limit for long-running requests
+        set_time_limit(300);
+
         // Get the request path without the base path
         $path = $request->path();
 
@@ -161,7 +164,7 @@ class OllamaService
         $isStreaming = isset($requestBody['stream']) && $requestBody['stream'] === true;
 
         // Forward the request to Ollama without authentication headers
-        $response = Http::timeout(300)->withHeaders(
+        $response = Http::timeout(300)->connectTimeout(10)->withHeaders(
             collect($request->headers->all())
                 ->except(['authorization', 'Authorization'])
                 ->map(fn($values) => is_array($values) ? $values[0] : $values)
