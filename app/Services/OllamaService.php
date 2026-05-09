@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use Illuminate\Http\Client\ConnectionException;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Http;
@@ -152,7 +153,7 @@ class OllamaService
 
 
     public function redirectRequest(Request $request
-    ): \Illuminate\Contracts\Routing\ResponseFactory|Response|StreamedResponse {
+    ): Response|StreamedResponse|JsonResponse {
         // Get the request path without the base path
         $path = $request->path();
 
@@ -175,6 +176,10 @@ class OllamaService
                     'body' => $request->getContent(),
                 ]
             );
+
+        if ($response->status() !== 200) {
+            return response()->json(['error' => $response->body()], $response->status());
+        }
 
         // Handle streaming response
         if ($isStreaming) {
