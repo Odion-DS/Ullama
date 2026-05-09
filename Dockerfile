@@ -57,6 +57,7 @@ memory_limit=512M
 default_socket_timeout=300
 EOF
 
+RUN echo "request_terminate_timeout = 300s" >> /usr/local/etc/php-fpm.d/www.conf
 
 # Create log directories
 RUN mkdir -p /var/log/supervisor
