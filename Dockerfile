@@ -36,12 +36,27 @@ RUN chown -R www-data:www-data /var/www/html \
     && chmod -R 755 /var/www/html/storage \
     && chmod -R 755 /var/www/html/bootstrap/cache
 
+RUN mkdir -p /var/lib/nginx/tmp/client_body \
+    && chown -R www-data:www-data /var/lib/nginx \
+    && chmod -R 755 /var/lib/nginx
+
 # Copy nginx configuration
 COPY docker/image/nginx.conf /etc/nginx/nginx.conf
 COPY docker/image/default.conf /etc/nginx/http.d/default.conf
 
 # Copy supervisor configuration
 COPY docker/image/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
+
+# PHP limits for large/long Ollama requests
+RUN cat > /usr/local/etc/php/conf.d/ullama-limits.ini <<'EOF'
+post_max_size=50M
+upload_max_filesize=50M
+max_execution_time=300
+max_input_time=300
+memory_limit=512M
+default_socket_timeout=300
+EOF
+
 
 # Create log directories
 RUN mkdir -p /var/log/supervisor
