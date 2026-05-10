@@ -51,10 +51,10 @@ COPY docker/image/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 RUN cat > /usr/local/etc/php/conf.d/ullama-limits.ini <<'EOF'
 post_max_size=50M
 upload_max_filesize=50M
-max_execution_time=300
-max_input_time=300
+max_execution_time=1800
+max_input_time=1800
 memory_limit=512M
-default_socket_timeout=300
+default_socket_timeout=1800
 EOF
 
 # Set PHP-FPM pool configuration for long-running requests

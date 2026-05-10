@@ -154,7 +154,8 @@ class OllamaService
 
     public function redirectRequest(Request $request
     ): Response|StreamedResponse|JsonResponse {
-        set_time_limit(300);
+        set_time_limit(0);
+        ignore_user_abort(true);
 
         // Get the request path without the base path
         $path = $request->path();
@@ -178,7 +179,6 @@ class OllamaService
                     ->map(fn($values) => is_array($values) ? $values[0] : $values)
                     ->all()
             )
-            ->withOptions($isStreaming ? ['stream' => true] : [])
             ->send(
                 $request->method(),
                 "{$this->baseUrl}/{$path}",
