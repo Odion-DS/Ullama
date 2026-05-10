@@ -164,12 +164,20 @@ class OllamaService
         $isStreaming = isset($requestBody['stream']) && $requestBody['stream'] === true;
 
         // Forward the request to Ollama without authentication headers
-        $response = Http::timeout(300)->connectTimeout(10)->withHeaders(
-            collect($request->headers->all())
-                ->except(['authorization', 'Authorization'])
-                ->map(fn($values) => is_array($values) ? $values[0] : $values)
-                ->all()
-        )
+        $response = Http::connectTimeout(10)
+            ->timeout(1800)            // total request timeout
+            ->withOptions([
+                'read_timeout' => 1800,  // Guzzle stream read timeout
+                'stream' => $isStreaming,
+                'http_errors' => false,
+                'decode_content' => false,
+            ])
+            ->withHeaders(
+                collect($request->headers->all())
+                    ->except(['authorization', 'Authorization'])
+                    ->map(fn($values) => is_array($values) ? $values[0] : $values)
+                    ->all()
+            )
             ->withOptions($isStreaming ? ['stream' => true] : [])
             ->send(
                 $request->method(),
