@@ -57,8 +57,11 @@ memory_limit=512M
 default_socket_timeout=300
 EOF
 
-RUN sed -i 's/^;\?request_terminate_timeout.*/request_terminate_timeout = 300/' /usr/local/etc/php-fpm.d/www.conf || \
-    echo "request_terminate_timeout = 300" >> /usr/local/etc/php-fpm.d/www.conf
+# Set PHP-FPM pool configuration for long-running requests
+RUN echo "" >> /usr/local/etc/php-fpm.d/www.conf && \
+    echo "; Ollama long-running request settings" >> /usr/local/etc/php-fpm.d/www.conf && \
+    echo "request_terminate_timeout = 300" >> /usr/local/etc/php-fpm.d/www.conf && \
+    echo "pm.max_requests = 500" >> /usr/local/etc/php-fpm.d/www.conf
 
 # Create log directories
 RUN mkdir -p /var/log/supervisor
