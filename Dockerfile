@@ -60,7 +60,7 @@ EOF
 # Set PHP-FPM pool configuration for long-running requests
 RUN echo "" >> /usr/local/etc/php-fpm.d/www.conf && \
     echo "; Ollama long-running request settings" >> /usr/local/etc/php-fpm.d/www.conf && \
-    echo "request_terminate_timeout = 300" >> /usr/local/etc/php-fpm.d/www.conf && \
+    echo "request_terminate_timeout = 0" >> /usr/local/etc/php-fpm.d/www.conf && \
     echo "pm.max_requests = 500" >> /usr/local/etc/php-fpm.d/www.conf
 
 # Create log directories
