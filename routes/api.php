@@ -51,5 +51,5 @@ Route::post('push', fn(Request $request) => Ollama::redirectRequest($request))
 
 
 Route::delete('delete', fn(Request $request) => Ollama::redirectRequest($request))
-    ->middleware(['ollama.auth', CheckOllamaPermission::class . ':' . OllamaPermission::CAN_DELETE_MODEL->name])
+    ->middleware(['ollama.auth', CheckOllamaPermission::class . ':' . OllamaPermission::CAN_DELETE_MODEL->value])
     ->name('ollama.delete');
