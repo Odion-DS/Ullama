@@ -7,12 +7,17 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
 // Helper function to create Ollama proxy routes
-
+Route::any('/', function (Request $request) {
+    return response()->json([
+        'error' => 'No valid URL',
+    ], 200);
+})
+    ->middleware(['ollama.auth', CheckOllamaPermission::class . ':' . OllamaPermission::CAN_GENERATE_RESPONSE->value])
+    ->name('ollama.generate');
 
 Route::post('generate', fn(Request $request) => Ollama::redirectRequest($request))
     ->middleware(['ollama.auth', CheckOllamaPermission::class . ':' . OllamaPermission::CAN_GENERATE_RESPONSE->value])
     ->name('ollama.generate');
-
 
 Route::post('chat', fn(Request $request) => Ollama::redirectRequest($request))
     ->middleware(
