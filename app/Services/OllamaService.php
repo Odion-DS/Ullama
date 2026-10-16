@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use Illuminate\Http\Client\ConnectionException;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Http;
@@ -151,49 +152,115 @@ class OllamaService
     }
 
 
-    public function redirectRequest(Request $request
-    ): \Illuminate\Contracts\Routing\ResponseFactory|Response|StreamedResponse {
-        // Increase PHP execution time limit for long-running requests
-        set_time_limit(300);
+public function redirectRequest(Request $request): Response|StreamedResponse|JsonResponse
+{
+    set_time_limit(0);
+    ignore_user_abort(true);
 
-        // Get the request path without the base path
-        $path = $request->path();
+    $path = $request->path();
 
-        // Check if streaming is requested
-        $requestBody = json_decode($request->getContent(), true);
-        $isStreaming = isset($requestBody['stream']) && $requestBody['stream'] === true;
+    $requestBody = json_decode($request->getContent(), true);
+    $isStreaming = ($requestBody['stream'] ?? false) === true;
 
-        // Forward the request to Ollama without authentication headers
-        $response = Http::timeout(300)->connectTimeout(10)->withHeaders(
-            collect($request->headers->all())
-                ->except(['authorization', 'Authorization'])
-                ->map(fn($values) => is_array($values) ? $values[0] : $values)
-                ->all()
-        )
-            ->withOptions($isStreaming ? ['stream' => true] : [])
-            ->send(
-                $request->method(),
-                "{$this->baseUrl}/{$path}",
-                [
-                    'body' => $request->getContent(),
-                ]
-            );
+    // Nicht blind Transport-/Proxy-Header weiterreichen
+    $requestHeaders = collect($request->headers->all())
+        ->except([
+            'authorization',
+            'host',
+            'content-length',
+            'connection',
+            'keep-alive',
+            'proxy-authenticate',
+            'proxy-authorization',
+            'te',
+            'trailer',
+            'transfer-encoding',
+            'upgrade',
+        ])
+        ->map(fn ($values) => is_array($values) ? $values[0] : $values)
+        ->all();
 
-        // Handle streaming response
-        if ($isStreaming) {
-            return response()->stream(function () use ($response) {
-                $body = $response->toPsrResponse()->getBody();
+    $response = Http::connectTimeout(10)
+        ->timeout(1800)
+        ->withOptions([
+            'read_timeout' => 1800,
+            'stream' => $isStreaming,
+            'http_errors' => false,
+        ])
+        ->withHeaders($requestHeaders)
+        ->send(
+            $request->method(),
+            "{$this->baseUrl}/{$path}",
+            [
+                'body' => $request->getContent(),
+            ]
+        );
+
+    if (!$response->successful()) {
+        return response(
+            $response->body(),
+            $response->status(),
+            [
+                'Content-Type' => $response->header('Content-Type')
+                    ?: 'application/json',
+            ]
+        );
+    }
+
+    if ($isStreaming) {
+
+        $headers = collect($response->headers())
+            ->except([
+                'connection',
+                'keep-alive',
+                'proxy-authenticate',
+                'proxy-authorization',
+                'te',
+                'trailer',
+                'transfer-encoding',
+                'upgrade',
+                'content-length',
+            ])
+            ->all();
+
+        $headers['X-Accel-Buffering'] = 'no';
+        $headers['Cache-Control'] = 'no-cache';
+
+        return response()->stream(
+            function () use ($response) {
+
+                $body = $response
+                    ->toPsrResponse()
+                    ->getBody();
+
                 while (!$body->eof()) {
-                    echo $body->read(1024);
-                    ob_flush();
+
+                    $chunk = $body->read(8192);
+
+                    if ($chunk === '') {
+                        usleep(1000);
+                        continue;
+                    }
+
+                    echo $chunk;
+
+                    // Nur flushen, wenn tatsächlich ein Output Buffer existiert
+                    if (ob_get_level() > 0) {
+                        ob_flush();
+                    }
+
                     flush();
                 }
-            }, $response->status(), $response->headers());
-        }
-
-        // Handle regular response
-        return response($response->body(), $response->status())
-            ->withHeaders($response->headers());
+            },
+            $response->status(),
+            $headers
+        );
     }
+
+    return response(
+        $response->body(),
+        $response->status()
+    )->withHeaders($response->headers());
+}
 
 }
